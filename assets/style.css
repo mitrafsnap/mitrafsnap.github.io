@@ -63,13 +63,18 @@ em { font-style: normal; font-weight: 700; }
 .theme .moon { fill: currentColor; stroke: none; }
 :root[data-theme="light"] .theme .sun, :root:not([data-theme="light"]) .theme .moon { display: none; }
 .theme:hover { border-color: var(--muted); }
-.hero h1 { font-size: 76px; margin: 36px 0 0; line-height: 1.05; }
+.hero h1 { font-size: 76px; margin: 36px 0 0; line-height: 1.05; color: var(--mitrafsnap); }
 .hero .lead { font-size: 32px; margin: 10px 0 20px; }
 .hero .intro { font-size: 20px; color: var(--muted); }
 
 .feature video, .videos video {
   width: 100%; display: block; border-radius: 10px; border: 1px solid var(--line); background: var(--video-bg);
 }
+.fig { margin: 8px 0 20px; }
+.fig img { width: 100%; height: auto; display: block; background: #fff; border-radius: 10px; padding: 14px; border: 1px solid var(--line); }
+.figs { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: start; }
+.figs .fig { margin: 0 0 14px; }
+code { font-size: .9em; }
 .caption, figcaption { color: var(--muted); font-size: 17px; margin-top: 10px; }
 
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 8px 0 14px; }
@@ -102,7 +107,7 @@ table.results td:last-child { white-space: nowrap; }
 section.wrap.last { margin-bottom: 80px; }
 
 @media (max-width: 900px) {
-  .cards, .videos { grid-template-columns: minmax(0, 1fr); }
+  .cards, .videos, .figs { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   :root { font-size: 17px; }

@@ -60,6 +60,15 @@
 
     <section class="wrap" id="design">
       <h2>Design</h2>
+      <figure class="fig">
+        <img src="assets/img/architecture.png" width="2400" height="751" loading="lazy"
+             alt="MitraFSnap architecture with the image builder, the registry and the worker node">
+        <figcaption>Architecture of MitraFSnap. The builder turns an OCI image and a JSON description
+          of its allotments into lazy loadable allotments with their chunk index (TOC) and pushes
+          them to the registry. The worker pulls the image through the MitraFSnap snapshotter and
+          refreshes updated layers with <code>ctr-remote refresh</code>. Red boxes mark the parts
+          that MitraFSnap adds.</figcaption>
+      </figure>
       <div class="cards">
         <article class="card">
           <h3>Builder</h3>
@@ -79,6 +88,21 @@
             layers, replaces the readers of the changed layers and invalidates only the changed
             cached ranges. The application decides when to reopen the files.</p>
         </article>
+      </div>
+      <div class="figs">
+        <figure class="fig">
+          <img src="assets/img/distribution.png" width="1100" height="1024" loading="lazy"
+               alt="Selective distribution between the registry and the client">
+          <figcaption>Selective distribution. The client prefetches the allotments of the selected
+            partition and reads every other file lazily through FUSE.</figcaption>
+        </figure>
+        <figure class="fig">
+          <img src="assets/img/refresh.png" width="982" height="477" loading="lazy"
+               alt="Refresh of a running container by the snapshotter">
+          <figcaption>Refresh. The refresh engine swaps the reader of the updated layer and
+            invalidates only the changed pages, while the process in the container keeps
+            running.</figcaption>
+        </figure>
       </div>
       <p class="note">Images built by MitraFSnap are standard OCI images, and the snapshotter runs
         as a containerd plugin.</p>
