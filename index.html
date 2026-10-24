@@ -11,17 +11,22 @@
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <header class="hero">
+  <div class="topbar" id="topbar">
+    <div class="wrap bar">
+      <nav class="nav">
+        <a class="brand" href="#top" aria-label="MitraFSnap, back to top">MitraFSnap</a>
+        <a href="#demo">Demo</a><a href="#design">Design</a><a href="#results">Results</a><a href="#code">Code</a>
+      </nav>
+      <button id="theme" class="theme" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+        <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+      </button>
+    </div>
+  </div>
+  <header class="hero" id="top">
     <div class="wrap">
-      <div class="bar">
-        <nav class="nav"><a href="#demo">Demo</a><a href="#design">Design</a><a href="#results">Results</a><a href="#code">Code</a></nav>
-        <button id="theme" class="theme" type="button" aria-label="Switch to light mode" title="Switch to light mode">
-          <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
-          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
-        </button>
-      </div>
       <h1>MitraFSnap</h1>
-      <p class="lead">Build Less, Pull Less, Restart Never: Fast Container Image Distribution and In-Place Updates</p>
+      <p class="lead">Build Less, Pull Less, Restart Never:<br>Fast Container Image Distribution and In-Place Updates</p>
       <p class="intro">ML services ship their models, configurations and assets inside container
         images, together with a runtime that rarely changes. When one of these artifacts changes,
         the image pipeline builds a new image and replaces the container that uses it. A small
@@ -183,7 +188,20 @@
     </section>
   </main>
 
+  <button id="to-top" class="to-top" type="button" aria-label="Back to top" title="Back to top">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
   <script>
+    // The bar stays at the top. Once the big title has scrolled away, the name
+    // slides into the bar and the back-to-top button appears.
+    const bar = document.getElementById("topbar"), toTop = document.getElementById("to-top");
+    new IntersectionObserver(([e]) => {
+      bar.classList.toggle("scrolled", !e.isIntersecting);
+      toTop.classList.toggle("shown", !e.isIntersecting);
+    }, { rootMargin: "-70px 0px 0px 0px" }).observe(document.querySelector(".hero h1"));
+    toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
     const btn = document.getElementById("theme");
     function label() {
       const text = document.documentElement.dataset.theme === "light" ? "Switch to dark mode" : "Switch to light mode";
