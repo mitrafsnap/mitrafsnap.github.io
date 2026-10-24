@@ -61,6 +61,10 @@ assets/video/              demo recordings (MP4) and their poster frames
 .nojekyll                  tells GitHub Pages to serve the files as they are
 ```
 
+**Stylesheet version.** `index.html` loads `assets/style.css?v=...`. Change the version with
+every edit of the stylesheet, so browsers never combine a new page with a cached old
+stylesheet.
+
 **Preview locally**
 
 ```bash
