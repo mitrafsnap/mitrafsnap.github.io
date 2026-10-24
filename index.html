@@ -13,14 +13,21 @@
 <body>
   <div class="topbar" id="topbar">
     <div class="wrap bar">
-      <nav class="nav">
+      <nav class="nav" aria-label="Sections">
         <a class="brand" href="#top" aria-label="MitraFSnap, back to top">MitraFSnap</a>
-        <a href="#demo">Demo</a><a href="#design">Design</a><a href="#results">Results</a><a href="#code">Code</a>
+        <div class="links" id="nav-links">
+          <a href="#demo">Demo</a><a href="#design">Design</a><a href="#results">Results</a><a href="#code">Code</a>
+        </div>
       </nav>
+      <div class="actions">
+      <button id="menu" class="theme menu" type="button" aria-label="Open the menu" aria-expanded="false" aria-controls="nav-links">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="l1" d="M4 7h16"/><path class="l2" d="M4 12h16"/><path class="l3" d="M4 17h16"/></svg>
+      </button>
       <button id="theme" class="theme" type="button" aria-label="Switch to light mode" title="Switch to light mode">
         <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
         <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
       </button>
+      </div>
     </div>
   </div>
   <header class="hero" id="top">
@@ -204,6 +211,18 @@
       toTop.classList.toggle("shown", !e.isIntersecting);
     }, { rootMargin: "-70px 0px 0px 0px" }).observe(document.querySelector(".hero h1"));
     toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+    // Narrow screens put the section links behind a menu button.
+    const menu = document.getElementById("menu");
+    function setMenu(open) {
+      bar.classList.toggle("open", open);
+      menu.setAttribute("aria-expanded", String(open));
+      menu.setAttribute("aria-label", open ? "Close the menu" : "Open the menu");
+    }
+    menu.addEventListener("click", (e) => { e.stopPropagation(); setMenu(!bar.classList.contains("open")); });
+    document.getElementById("nav-links").addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
+    document.addEventListener("click", (e) => { if (!bar.contains(e.target)) setMenu(false); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
 
     const btn = document.getElementById("theme");
     function label() {

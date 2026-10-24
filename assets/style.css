@@ -87,7 +87,15 @@ html { scroll-behavior: smooth; scroll-padding-top: 76px; }
   .nav .brand, .to-top, .topbar { transition: none; }
 }
 .nav { display: flex; flex-wrap: nowrap; min-width: 0; --gap: 20px; }
-.nav a + a:not(:nth-child(2)) { margin-left: var(--gap); }
+.links { display: flex; }
+.links a + a { margin-left: var(--gap); }
+.actions { display: flex; gap: 10px; align-items: center; }
+.theme.menu { display: none; }
+.menu svg { stroke-width: 2; }
+.menu path { transition: transform .25s ease, opacity .2s ease; transform-origin: 12px 12px; }
+.topbar.open .menu .l1 { transform: translateY(5px) rotate(45deg); }
+.topbar.open .menu .l2 { opacity: 0; }
+.topbar.open .menu .l3 { transform: translateY(-5px) rotate(-45deg); }
 .nav a { flex-shrink: 0; }
 .nav a { color: var(--muted); text-decoration: none; font-size: 18px; }
 .nav a:hover { color: var(--text); }
@@ -173,8 +181,18 @@ section.wrap.last { margin-bottom: 80px; }
   :root { font-size: 17px; }
   .wrap { padding: 0 16px; }
   .hero { padding: 12px 0 36px; }
-  .nav { --gap: 12px; overflow-x: auto; scrollbar-width: none; }
-  .nav a { font-size: 15px; }
+  .theme.menu { display: inline-flex; }
+  .wrap.bar { position: relative; }
+  /* the links drop down under the bar */
+  .links {
+    display: none; position: absolute; top: 64px; left: 0; right: 0; flex-direction: column;
+    background: var(--bg); border-bottom: 1px solid var(--line); padding: 4px 16px 10px;
+  }
+  .topbar.open .links { display: flex; }
+  .links a + a { margin-left: 0; }
+  .links a { padding: 10px 0; font-size: 18px; border-top: 1px solid var(--line); }
+  .links a:first-child { border-top: 0; }
+  .topbar.open { border-bottom-color: var(--line); }
   .nav .brand { font-size: 18px; }
   .to-top { right: 16px; bottom: 16px; }
   .hero h1 { font-size: clamp(40px, 13vw, 52px); }
