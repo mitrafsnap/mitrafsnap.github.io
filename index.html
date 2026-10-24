@@ -3,10 +3,155 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mitrafsnap</title>
+  <title>MitraFSnap</title>
+  <meta name="description" content="MitraFSnap refreshes the data mounted in a running container without replacing the container: an OCI-compatible builder, registry and containerd snapshotter.">
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <h1>Mitrafsnap</h1>
-  <p>Coming soon. See our code on <a href="https://github.com/mitrafsnap">GitHub</a>.</p>
+  <header class="hero">
+    <div class="wrap">
+      <p class="kicker">Container images for evolving ML artifacts</p>
+      <h1>MitraFSnap</h1>
+      <p class="lead">Refreshing mounted container data without replacing the container.</p>
+      <p class="intro">When a model, a configuration or an asset inside an image changes, today's image
+        pipeline replaces the container that uses it: pull the new image, stop the old container, start
+        a new one and read the working set again. MitraFSnap keeps the container running. It updates
+        only the data that changed behind the container's existing mount, and keeps everything else
+        in its caches.</p>
+      <p class="actions">
+        <a class="button" href="#demo">Watch the demo</a>
+        <a class="button ghost" href="#code">Code</a>
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <section class="wrap feature">
+      <video src="assets/video/traffic-highlight.mp4" autoplay muted loop playsinline
+             poster="assets/video/traffic-poster.jpg"
+             aria-label="Four methods roll out a new detector; three stop serving, MitraFSnap keeps serving"></video>
+      <p class="caption">A live demo at real speed: Docker, eStargz, 2DFS and MitraFSnap roll out a new
+        detector to the same camera. The first three restart their containers and the camera goes dark;
+        MitraFSnap updates the running container and keeps serving.</p>
+    </section>
+
+    <section class="wrap">
+      <h2>The cost of replacing a container</h2>
+      <p>ML services ship a stable runtime together with models, configurations and assets that change
+        all the time. Every change becomes a new image, and every new image becomes a new container:
+        an update repeats the pull, discards the mounted filesystem and forces the new instance to fetch
+        its working set again, no matter how little actually changed. Lazy-loading formats shorten the
+        start, but a new version still arrives as a new snapshot with an empty cache.</p>
+      <p>The information needed to avoid this already exists in the image pipeline. Independently built
+        image components identify <em>what</em> changed between versions, and the chunk index used for
+        lazy loading identifies <em>which</em> cached bytes are still valid. MitraFSnap preserves both
+        from construction to the running container.</p>
+    </section>
+
+    <section class="wrap">
+      <h2>How it works</h2>
+      <div class="cards">
+        <article class="card">
+          <span class="step">1</span>
+          <h3>Builder</h3>
+          <p>Packages each model or asset as an independently built, cached and lazy-loadable
+            <em>allotment</em>, and generates its chunk index during the build. An update rebuilds only
+            the allotments it touches, in parallel.</p>
+        </article>
+        <article class="card">
+          <span class="step">2</span>
+          <h3>Registry</h3>
+          <p>Turns a client's partition selection into a prefetch policy over the complete image.
+            Workers start with different working sets from the same image, and everything outside the
+            selection stays readable on demand.</p>
+        </article>
+        <article class="card">
+          <span class="step">3</span>
+          <h3>Snapshotter</h3>
+          <p>Refreshes a running container in place: it compares chunk indexes, swaps the readers of
+            changed layers and invalidates only the changed cached ranges. The application decides when
+            to reopen the new data.</p>
+        </article>
+      </div>
+      <p class="note">All three are OCI-compatible: images stay valid OCI images that standard clients can
+        pull, and the snapshotter plugs into containerd.</p>
+    </section>
+
+    <section class="wrap">
+      <h2>Results</h2>
+      <p>Across three language models of up to 59 GB and a four-model video analytics bundle:</p>
+      <div class="stats">
+        <div class="stat"><span class="value">8.3–85.9×</span>
+          <span class="label">faster updates in the cloud than container replacement, measured until the
+            application rereads the updated files</span></div>
+        <div class="stat"><span class="value">7.0–265.6×</span>
+          <span class="label">faster updates at the edge</span></div>
+        <div class="stat"><span class="value">87.2 KB</span>
+          <span class="label">transferred for 100 configuration updates of Gemma 4 31B, where replacement
+            transfers 4.7 to 5.7 TB</span></div>
+        <div class="stat"><span class="value">6.5×</span>
+          <span class="label">faster rebuild than Docker for a 25% update of Qwen3.5 9B</span></div>
+      </div>
+      <p class="note">Build performance stays close to 2DFS and pull performance comparable to eStargz.</p>
+    </section>
+
+    <section class="wrap" id="demo">
+      <h2>Live demo</h2>
+      <p>One vision application, built, deployed and updated four ways at once on the same machine and the
+        same emulated 200 Mbit/s edge link. Each video opens with what its four acts do, and plays at
+        2× speed; every time in the dashboard is measured in real time.</p>
+      <div class="videos">
+        <figure>
+          <video src="assets/video/traffic.mp4" controls preload="metadata" poster="assets/video/traffic-poster.jpg"></video>
+          <figcaption><strong>Traffic camera.</strong> A detector, then instance segmentation, a stronger
+            detector, and a patch to a model the camera never uses.</figcaption>
+        </figure>
+        <figure>
+          <video src="assets/video/people.mp4" controls preload="metadata" poster="assets/video/people-poster.jpg"></video>
+          <figcaption><strong>People camera.</strong> Faces, then body pose and an expression model; live
+            from a webcam in the demo, from a recorded clip here.</figcaption>
+        </figure>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption class="note" style="caption-side:bottom;text-align:left;padding-top:10px">Traffic run on one laptop with all four methods running at once: a demonstration, not a benchmark.</caption>
+          <thead><tr><th></th>
+            <th><span class="key" style="background:var(--docker)"></span>Docker</th>
+            <th><span class="key" style="background:var(--estargz)"></span>eStargz</th>
+            <th><span class="key" style="background:var(--twodfs)"></span>2DFS</th>
+            <th><span class="key" style="background:var(--mitrafsnap)"></span>MitraFSnap</th></tr></thead>
+          <tbody>
+            <tr><td>Total downtime, Acts 2 to 4</td><td>73.5 s</td><td>26.1 s</td><td>12.8 s</td><td class="best">0 s</td></tr>
+            <tr><td>Total time, all acts</td><td>208.1 s</td><td>149.3 s</td><td>68.3 s</td><td class="best">52.8 s</td></tr>
+            <tr><td>Total build and push</td><td>84.5 s</td><td>109.0 s</td><td>41.1 s</td><td class="best">34.6 s</td></tr>
+            <tr><td>Act 1 until first frame</td><td>70.2 s</td><td>40.3 s</td><td>24.0 s</td><td class="best">16.6 s</td></tr>
+            <tr><td>Downloaded</td><td>1475 MB</td><td>679 MB</td><td>227 MB</td><td class="best">173 MB</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="wrap" id="code">
+      <h2>Code</h2>
+      <ul class="repos">
+        <li><a href="https://github.com/mitrafsnap/stargz-snapshotter">stargz-snapshotter</a>
+          <span>containerd snapshotter with in-place refresh and subscription</span></li>
+        <li><a href="https://github.com/mitrafsnap/2dfs-builder">2dfs-builder</a>
+          <span>builder for independent, lazy-loadable allotments</span></li>
+        <li><a href="https://github.com/mitrafsnap/2dfs-registry">2dfs-registry</a>
+          <span>registry that turns partition selection into prefetch hints</span></li>
+        <li><a href="https://github.com/mitrafsnap/evaluation">evaluation</a>
+          <span>benchmark suite for build, pull and refresh</span></li>
+        <li><span class="private">demo</span>
+          <span>the live demo shown above (private for now)</span></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>MitraFSnap builds on <a href="https://github.com/2DFS">2DFS</a> and the
+      <a href="https://github.com/containerd/stargz-snapshotter">stargz snapshotter</a>.
+      The paper describing it is under review.</p>
+  </footer>
 </body>
 </html>
