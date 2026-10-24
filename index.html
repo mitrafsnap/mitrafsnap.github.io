@@ -105,7 +105,10 @@
         </figure>
       </div>
       <p class="note">Images built by MitraFSnap are standard OCI images, and the snapshotter runs
-        as a containerd plugin.</p>
+        as a containerd plugin. The builder, the registry and the snapshotter are forks of the
+        <a href="https://github.com/2DFS/2dfs-builder">2DFS builder</a>, the
+        <a href="https://github.com/2DFS/2dfs-registry">2DFS registry</a> and the containerd
+        <a href="https://github.com/containerd/stargz-snapshotter">stargz snapshotter</a>.</p>
     </section>
 
     <section class="wrap" id="results">
@@ -171,14 +174,14 @@
     <section class="wrap last" id="code">
       <h2>Code</h2>
       <ul class="repos">
-        <li><a href="https://github.com/mitrafsnap/snapshotter">snapshotter</a>
-          <span>containerd snapshotter with lazy pulling and refresh</span></li>
         <li><a href="https://github.com/mitrafsnap/builder">builder</a>
-          <span>builds independent, lazy loadable allotments</span></li>
+          <span>builds independent, lazy loadable allotments and their chunk indexes</span></li>
         <li><a href="https://github.com/mitrafsnap/registry">registry</a>
-          <span>turns a partition selection into prefetch hints</span></li>
+          <span>turns a partition selection into prefetch hints over the complete image</span></li>
+        <li><a href="https://github.com/mitrafsnap/snapshotter">snapshotter</a>
+          <span>lazy pulling and refresh of running containers</span></li>
         <li><a href="https://github.com/mitrafsnap/demo">demo</a>
-          <span>the live demo in the videos above</span></li>
+          <span>live demo that compares Docker, eStargz, 2DFS and MitraFSnap</span></li>
         <li><a href="https://github.com/mitrafsnap/evaluation">evaluation</a>
           <span>build, pull and update benchmarks</span></li>
       </ul>
