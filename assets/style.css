@@ -24,6 +24,9 @@
   --accent: var(--mitrafsnap);
   --accent-text: #ef6b6b;
   --video-bg: #0b0c10;
+  --upd: #7d95ff;
+  --upd-fill: rgba(125, 149, 255, .20);
+  --sel-fill: rgba(204, 51, 51, .28);
   color-scheme: dark;
   font: 19px/1.55 "CMU Sans Serif", ui-sans-serif, system-ui, sans-serif;
 }
@@ -35,6 +38,9 @@
   --muted: #5b6270;
   --accent-text: #b82a2a;
   --video-bg: #0f1115;
+  --upd: #1c39bb;
+  --upd-fill: rgba(28, 57, 187, .10);
+  --sel-fill: rgba(204, 51, 51, .14);
   color-scheme: light;
 }
 
@@ -46,7 +52,7 @@ a { color: var(--accent-text); }
 section.wrap { margin-top: 64px; }
 h2 { font-size: 34px; margin: 0 0 14px; }
 h3 { font-size: 23px; margin: 6px 0; }
-p { margin: 0 0 14px; max-width: 860px; }
+p { margin: 0 0 14px; text-align: justify; hyphens: auto; }
 em { font-style: normal; font-weight: 700; }
 
 .hero { border-bottom: 1px solid var(--line); padding: 72px 0 52px; }
@@ -64,18 +70,41 @@ em { font-style: normal; font-weight: 700; }
 :root[data-theme="light"] .theme .sun, :root:not([data-theme="light"]) .theme .moon { display: none; }
 .theme:hover { border-color: var(--muted); }
 .hero h1 { font-size: 76px; margin: 36px 0 0; line-height: 1.05; color: var(--mitrafsnap); }
-.hero .lead { font-size: 32px; margin: 10px 0 20px; }
+.hero .lead { font-size: 32px; margin: 10px 0 20px; text-align: left; hyphens: manual; }
 .hero .intro { font-size: 20px; color: var(--muted); }
 
 .feature video, .videos video {
   width: 100%; display: block; border-radius: 10px; border: 1px solid var(--line); background: var(--video-bg);
 }
-.fig { margin: 8px 0 20px; }
-.fig img { width: 100%; height: auto; display: block; background: #fff; border-radius: 10px; padding: 14px; border: 1px solid var(--line); }
-.figs { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: start; }
+.fig { margin: 8px 0 24px; }
+/* figures drawn as inline SVG in the page's own colors */
+.dg { width: 100%; height: auto; display: block; }
+.dg text { fill: var(--text); font-family: inherit; font-size: 14px; }
+.dg .small { font-size: 12.5px; }
+.dg .title { font-size: 16px; font-weight: 700; }
+.dg .strong { font-weight: 700; }
+.dg .muted { fill: var(--muted); }
+.dg .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.dg .panel { fill: var(--panel); stroke: var(--line); }
+.dg .box, .dg .cell { fill: var(--bg); stroke: var(--muted); stroke-width: 1; }
+.dg .frame { fill: none; }
+.dg .mfs { stroke: var(--mitrafsnap); stroke-width: 1.8; }
+.dg .upd { fill: var(--upd-fill); stroke: var(--upd); stroke-width: 1.6; }
+.dg .sel { fill: var(--sel-fill); stroke: var(--mitrafsnap); stroke-width: 1.6; }
+.dg .partial { fill: var(--panel); stroke: var(--muted); }
+.dg .lazy { stroke-dasharray: 5 4; }
+.dg .faded { opacity: .55; }
+.dg .toc { fill: var(--mitrafsnap); }
+.dg .flow { fill: none; stroke: var(--text); stroke-width: 1.5; }
+.dg .ondemand { stroke-dasharray: 2 4; stroke-linecap: round; }
+.dg .ah { fill: var(--text); }
+.dg .x { stroke: var(--upd); stroke-width: 1.8; }
+.dg .step circle { fill: var(--bg); stroke: var(--text); stroke-width: 1.3; }
+.dg .step text { font-size: 12px; font-weight: 700; text-anchor: middle; }
+.figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; margin-top: 8px; }
 .figs .fig { margin: 0 0 14px; }
 code { font-size: .9em; }
-.caption, figcaption { color: var(--muted); font-size: 17px; margin-top: 10px; }
+.caption, figcaption { color: var(--muted); font-size: 17px; margin-top: 10px; text-align: center; }
 
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 8px 0 14px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
