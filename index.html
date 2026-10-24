@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MitraFSnap</title>
-  <meta name="description" content="MitraFSnap refreshes the data mounted in a running container without replacing the container. It consists of an OCI compatible builder, registry and containerd snapshotter.">
+  <meta name="description" content="MitraFSnap updates the data mounted in a running container without replacing the container. It consists of an OCI compatible builder, registry and containerd snapshotter.">
   <script>
     try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
@@ -14,21 +14,23 @@
   <header class="hero">
     <div class="wrap">
       <div class="bar">
-        <p class="kicker">Container images for evolving ML artifacts</p>
-        <button id="theme" class="theme" type="button" aria-label="Switch to light mode">Light mode</button>
+        <nav class="nav"><a href="#demo">Demo</a><a href="#design">Design</a><a href="#results">Results</a><a href="#code">Code</a></nav>
+        <button id="theme" class="theme" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+          <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+        </button>
       </div>
       <h1>MitraFSnap</h1>
-      <p class="lead">Refreshing mounted container data without replacing the container.</p>
-      <p class="intro">An ML service ships a stable runtime together with models, configurations
-        and assets that change all the time. The image pipeline turns every such change into a new
-        image and every new image into a new container, so an update pulls the image, stops the old
-        container, starts a new one and reads the working set again. MitraFSnap updates only the
-        data that changed behind the mount of the running container and keeps the rest in its
-        caches.</p>
-      <p class="actions">
-        <a class="button" href="#demo">Watch the demo</a>
-        <a class="button ghost" href="#code">Code</a>
-      </p>
+      <p class="lead">Refreshing mounted container data without replacing the container</p>
+      <p class="intro">ML services ship their models, configurations and assets inside container
+        images, together with a runtime that rarely changes. When one of these artifacts changes,
+        the image pipeline builds a new image and replaces the container that uses it. A small
+        configuration update therefore pulls the image again, discards the mounted filesystem and
+        makes the new container read its working set from a cold mount.</p>
+      <p class="intro">MitraFSnap keeps the container running instead. It consists of an OCI
+        compatible builder, a registry and a containerd snapshotter. After an update, the
+        snapshotter replaces only the changed data behind the mount of the running container, and
+        the rest of its cache stays valid.</p>
     </div>
   </header>
 
@@ -36,105 +38,101 @@
     <section class="wrap feature">
       <video src="assets/video/traffic-highlight.mp4" autoplay muted loop playsinline
              poster="assets/video/traffic-poster.jpg"
-             aria-label="Four methods roll out a new detector. Three stop serving while MitraFSnap keeps serving."></video>
+             aria-label="Docker, eStargz, 2DFS and MitraFSnap roll out a new detector to the same camera"></video>
       <p class="caption">Docker, eStargz, 2DFS and MitraFSnap roll out a new detector to the same
-        camera, shown at real speed. The first three restart their containers and their cameras go
-        dark for several seconds. MitraFSnap updates the running container, and its camera keeps
-        running.</p>
+        camera (real time). Docker, eStargz and 2DFS replace their containers, so their cameras
+        stop for several seconds. MitraFSnap refreshes the mount of the running container, and its
+        camera continues without a gap.</p>
     </section>
 
     <section class="wrap">
-      <h2>The cost of replacing a container</h2>
-      <p>Replacing the container repeats the pull, discards the mounted filesystem and forces the
-        new instance to fetch its working set again, regardless of how little changed. Lazy loading
-        formats shorten the start, but a new version still arrives as a new snapshot with an empty
-        cache. Applying 100 configuration updates to a Gemma 4 31B image by container replacement
-        transfers 4.7 to 5.7 TB, whereas updating the existing mount transfers 87.2 KB.</p>
-      <p>The information needed to avoid this cost already exists in the image pipeline.
-        Independently built image components record which parts changed between two versions, and
-        the chunk index used for lazy loading records which cached bytes are still valid.
-        MitraFSnap preserves both from the build to the running container.</p>
+      <h2>Why replacing a container is expensive</h2>
+      <p>A new container starts from a new snapshot. It has to pull the image, mount it and read
+        every file it needs again, even if the update changed a single configuration file. Lazy
+        loading formats such as eStargz start the container earlier, but the new snapshot still
+        begins with an empty cache. In our measurements, 100 configuration updates of a Gemma 4
+        31B image transfer 4.7 to 5.7 TB with container replacement and 87.2 KB with MitraFSnap.</p>
+      <p>The image pipeline already knows what an update changed. Components that are built
+        independently show which parts of the image differ between two versions, and the chunk
+        index of a lazy loading format shows which cached bytes are still the same. MitraFSnap
+        keeps both pieces of information from the build until the container runs.</p>
     </section>
 
-    <section class="wrap">
-      <h2>How it works</h2>
+    <section class="wrap" id="design">
+      <h2>Design</h2>
       <div class="cards">
         <article class="card">
-          <span class="step">1</span>
           <h3>Builder</h3>
-          <p>The builder packages each model or asset as an independently built and cached
-            allotment and generates its chunk index during the build. An update rebuilds only the
-            allotments it touches.</p>
+          <p>The builder packages each model or asset as an allotment that is built and cached
+            independently. It generates the chunk index of every allotment during the build, so an
+            update rebuilds only the allotments it changes.</p>
         </article>
         <article class="card">
-          <span class="step">2</span>
           <h3>Registry</h3>
-          <p>The registry turns the partition a client selects into a prefetch policy over the
-            complete image. Workers start with different working sets from the same image and can
-            still read every other component on demand.</p>
+          <p>A client selects the partition of the image it needs. The registry turns this
+            selection into a prefetch policy and still serves the complete image, so components
+            outside the selection remain readable on demand.</p>
         </article>
         <article class="card">
-          <span class="step">3</span>
           <h3>Snapshotter</h3>
-          <p>The snapshotter refreshes a running container. It compares chunk indexes, swaps the
-            readers of the changed layers and invalidates only the changed cached ranges. The
-            application decides when to reopen the new data.</p>
+          <p>The snapshotter adds refresh. It compares the chunk indexes of the old and new
+            layers, replaces the readers of the changed layers and invalidates only the changed
+            cached ranges. The application decides when to reopen the files.</p>
         </article>
       </div>
-      <p class="note">The images remain valid OCI images that standard clients can pull, and the
-        snapshotter is a containerd plugin.</p>
+      <p class="note">Images built by MitraFSnap are standard OCI images, and the snapshotter runs
+        as a containerd plugin.</p>
     </section>
 
-    <section class="wrap">
+    <section class="wrap" id="results">
       <h2>Results</h2>
       <p>We evaluated MitraFSnap with three language models of up to 59 GB and a video analytics
-        bundle of four models.</p>
-      <div class="stats">
-        <div class="stat"><span class="value">8.3–85.9×</span>
-          <span class="label">faster updates in the cloud than container replacement, measured
-            until the application reads the updated files</span></div>
-        <div class="stat"><span class="value">7.0–265.6×</span>
-          <span class="label">faster updates at the edge</span></div>
-        <div class="stat"><span class="value">87.2 KB</span>
-          <span class="label">transferred for 100 configuration updates of Gemma 4 31B, compared
-            with 4.7 to 5.7 TB for replacement</span></div>
-        <div class="stat"><span class="value">6.5×</span>
-          <span class="label">faster rebuild than Docker for an update of 25% of Qwen3.5 9B</span></div>
+        bundle of four models. Build times stay close to those of 2DFS, and pull times are
+        comparable to those of eStargz. We measure an update until the application has read the
+        updated files again.</p>
+      <div class="table-wrap">
+        <table class="results">
+          <tbody>
+            <tr><td>Update latency in the cloud, compared with container replacement</td><td class="best">8.3 to 85.9× lower</td></tr>
+            <tr><td>Update latency at the edge, compared with container replacement</td><td class="best">7.0 to 265.6× lower</td></tr>
+            <tr><td>Transfer for 100 configuration updates of Gemma 4 31B</td><td class="best">87.2 KB instead of 4.7 to 5.7 TB</td></tr>
+            <tr><td>Rebuild after a 25% update of Qwen3.5 9B, compared with Docker</td><td class="best">6.5× faster</td></tr>
+          </tbody>
+        </table>
       </div>
-      <p class="note">Build times stay close to those of 2DFS, and pull times are comparable to
-        those of eStargz.</p>
     </section>
 
     <section class="wrap" id="demo">
       <h2>Live demo</h2>
-      <p>The demo builds, deploys and updates one vision application in four ways at the same
-        time, on one machine and over the same emulated 200 Mbit/s edge link. Each video begins
-        with a description of its four acts and plays at 2× speed, and the dashboard measures every
-        time in real time.</p>
+      <p>The demo runs one vision application with Docker, eStargz, 2DFS and MitraFSnap at the same
+        time, on one machine and over the same emulated 200 Mbit/s link. Each method builds,
+        deploys and updates the application in four acts. The videos below start with a short
+        description of the acts and play at 2× speed, and the dashboard measures all times in real
+        time.</p>
       <div class="videos">
         <figure>
           <video src="assets/video/traffic.mp4" controls preload="metadata" poster="assets/video/traffic-poster.jpg"></video>
-          <figcaption><strong>Traffic camera.</strong> The camera starts with a detector. The
-            updates add instance segmentation, ship a stronger detector and patch a model that the
-            camera never uses.</figcaption>
+          <figcaption><strong>Traffic camera.</strong> Version 1 detects people and cars. The
+            updates add instance segmentation, replace the detector with a stronger one and patch a
+            model that the camera does not use.</figcaption>
         </figure>
         <figure>
           <video src="assets/video/people.mp4" controls preload="metadata" poster="assets/video/people-poster.jpg"></video>
-          <figcaption><strong>People camera.</strong> The camera starts with face detection, and
-            the updates add body pose and an expression model. The live demo uses a webcam, and the
-            video uses a recorded clip.</figcaption>
+          <figcaption><strong>People camera.</strong> Version 1 detects faces, and the updates add
+            body pose and an expression model. The live demo reads a webcam, and this recording
+            uses a clip.</figcaption>
         </figure>
       </div>
+      <p>The table shows one run of the traffic camera on a laptop. All four methods share the
+        machine during the run, so the numbers show how the methods behave relative to each other
+        and are not a benchmark.</p>
       <div class="table-wrap">
         <table>
-          <caption>Traffic run on one laptop with all four methods running at once. The methods
-            share the machine, so the numbers illustrate their behavior and are not a
-            benchmark.</caption>
           <thead><tr><th></th>
-            <th><span class="key" style="background:var(--docker)"></span>Docker</th>
-            <th><span class="key" style="background:var(--estargz)"></span>eStargz</th>
-            <th><span class="key" style="background:var(--twodfs)"></span>2DFS</th>
-            <th><span class="key" style="background:var(--mitrafsnap)"></span>MitraFSnap</th></tr></thead>
+            <th><span class="key docker"></span>Docker</th>
+            <th><span class="key estargz"></span>eStargz</th>
+            <th><span class="key twodfs"></span>2DFS</th>
+            <th><span class="key mitrafsnap"></span>MitraFSnap</th></tr></thead>
           <tbody>
             <tr><td>Total downtime, Acts 2 to 4</td><td>74.6 s</td><td>25.8 s</td><td>12.6 s</td><td class="best">0 s</td></tr>
             <tr><td>Total time, all acts</td><td>210.9 s</td><td>147.8 s</td><td>69.1 s</td><td class="best">54.4 s</td></tr>
@@ -146,35 +144,29 @@
       </div>
     </section>
 
-    <section class="wrap" id="code">
+    <section class="wrap last" id="code">
       <h2>Code</h2>
       <ul class="repos">
         <li><a href="https://github.com/mitrafsnap/snapshotter">snapshotter</a>
-          <span>containerd snapshotter with lazy pulling and in-place refresh</span></li>
+          <span>containerd snapshotter with lazy pulling and refresh</span></li>
         <li><a href="https://github.com/mitrafsnap/builder">builder</a>
           <span>builds independent, lazy loadable allotments</span></li>
         <li><a href="https://github.com/mitrafsnap/registry">registry</a>
           <span>turns a partition selection into prefetch hints</span></li>
         <li><a href="https://github.com/mitrafsnap/demo">demo</a>
-          <span>the live demo shown above</span></li>
+          <span>the live demo in the videos above</span></li>
         <li><a href="https://github.com/mitrafsnap/evaluation">evaluation</a>
           <span>build, pull and update benchmarks</span></li>
       </ul>
     </section>
   </main>
 
-  <footer class="wrap">
-    <p>MitraFSnap builds on <a href="https://github.com/2DFS">2DFS</a> and the
-      <a href="https://github.com/containerd/stargz-snapshotter">stargz snapshotter</a>.
-      The paper that describes it is under review.</p>
-  </footer>
-
   <script>
     const btn = document.getElementById("theme");
     function label() {
-      const dark = document.documentElement.dataset.theme !== "light";
-      btn.textContent = dark ? "Light mode" : "Dark mode";
-      btn.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+      const text = document.documentElement.dataset.theme === "light" ? "Switch to dark mode" : "Switch to light mode";
+      btn.setAttribute("aria-label", text);
+      btn.title = text;
     }
     btn.addEventListener("click", () => {
       const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
