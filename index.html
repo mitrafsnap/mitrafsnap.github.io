@@ -8,7 +8,7 @@
   <script>
     try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
-  <link rel="stylesheet" href="assets/style.css?v=2026-10-24.2">
+  <link rel="stylesheet" href="assets/style.css?v=2026-10-24.3">
 </head>
 <body>
   <div class="topbar" id="topbar">
@@ -21,7 +21,8 @@
       </nav>
       <div class="actions">
       <button id="menu" class="theme menu" type="button" aria-label="Open the menu" aria-expanded="false" aria-controls="nav-links">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="l1" d="M4 7h16"/><path class="l2" d="M4 12h16"/><path class="l3" d="M4 17h16"/></svg>
+        <svg class="open-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="close-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
       <button id="theme" class="theme" type="button" aria-label="Switch to light mode" title="Switch to light mode">
         <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>

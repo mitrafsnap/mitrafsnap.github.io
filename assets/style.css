@@ -92,10 +92,8 @@ html { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .actions { display: flex; gap: 10px; align-items: center; }
 .theme.menu { display: none; }
 .menu svg { stroke-width: 2; }
-.menu path { transition: transform .25s ease, opacity .2s ease; transform-origin: 12px 12px; }
-.topbar.open .menu .l1 { transform: translateY(5px) rotate(45deg); }
-.topbar.open .menu .l2 { opacity: 0; }
-.topbar.open .menu .l3 { transform: translateY(-5px) rotate(-45deg); }
+.menu .close-icon, .topbar.open .menu .open-icon { display: none; }
+.topbar.open .menu .close-icon { display: block; }
 .nav a { flex-shrink: 0; }
 .nav a { color: var(--muted); text-decoration: none; font-size: 18px; }
 .nav a:hover { color: var(--text); }
